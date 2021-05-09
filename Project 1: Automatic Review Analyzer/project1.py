@@ -372,7 +372,7 @@ def extract_bow_feature_vectors(reviews, dictionary):
 
     Feel free to change this code as guided by Problem 9
     """
-    # Your code here
+    # ode here
 
     num_reviews = len(reviews)
     feature_matrix = np.zeros([num_reviews, len(dictionary)])
@@ -391,3 +391,44 @@ def accuracy(preds, targets):
     returns the percentage and number of correct predictions.
     """
     return (preds == targets).mean()
+
+
+def bag_of_words_new(texts):
+    """
+    Inputs a list of string reviews
+    Returns a dictionary of unique unigrams occurring over the input
+    Feel free to change this code as guided by Problem 9
+    """
+    # Read stopwords.txt and save words from this file
+    with open("stopwords.txt",'r',encoding='utf8') as stoptext:
+        stop_words = stoptext.read()
+        stop_words = stop_words.replace("\n"," ").split()
+        
+    dictionary = {} # maps word to unique index
+    for text in texts:
+        word_list = extract_words(text)
+        for word in word_list:
+            if word not in dictionary and word not in stop_words:
+                dictionary[word] = len(dictionary)
+    return dictionary
+
+
+def extract_bow_feature_vectors_new(reviews, dictionary):
+    """
+    Inputs a list of string reviews
+    Inputs the dictionary of words as given by bag_of_words
+    Returns the bag-of-words feature matrix representation of the data.
+    The returned matrix is of shape (n, m), where n is the number of reviews
+    and m the total number of entries in the dictionary.
+    Feel free to change this code as guided by Problem 9
+    """
+
+    num_reviews = len(reviews)
+    feature_matrix = np.zeros([num_reviews, len(dictionary)])
+
+    for i, text in enumerate(reviews):
+        word_list = extract_words(text)
+        for word in word_list:
+            if word in dictionary:
+                feature_matrix[i, dictionary[word]] += 1    # Changed binary update to counts 
+    return feature_matrix
