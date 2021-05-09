@@ -33,5 +33,5 @@ We will also implement and experiment with the algorithms in several Python proj
 ## Selected Projects 
 
 - Automatic Review Analyzer
-- Digit Recognition with Neural Networks
+- Digit Recognition 
 - Reinforcement Learning
