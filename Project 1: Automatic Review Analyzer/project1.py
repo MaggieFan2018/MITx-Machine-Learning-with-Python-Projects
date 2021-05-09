@@ -33,7 +33,9 @@ def hinge_loss_single(feature_vector, label, theta, theta_0):
     Returns: A real number representing the hinge loss associated with the
     given data point and parameters.
     """
-    # Your code here
+    # code here
+    hinge_loss = max(0, 1 - (label*(np.dot(theta, feature_vector) + theta_0)))
+    return hinge_loss
     raise NotImplementedError
 
 
@@ -55,7 +57,11 @@ def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     given dataset and parameters. This number should be the average hinge
     loss across all of the points in the feature matrix.
     """
-    # Your code here
+    # code here
+    num_vectors = feature_matrix.shape[0]
+    less_than_zero = np.maximum(np.zeros(num_vectors), 1 - labels*(np.dot(feature_matrix, theta) + theta_0))
+    hinge_loss = sum(less_than_zero)/num_vectors
+    return hinge_loss
     raise NotImplementedError
 
 
@@ -81,7 +87,14 @@ def perceptron_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    # Your code here
+    # code here
+    if label * (np.dot(current_theta, feature_vector) + current_theta_0) > 0:
+       theta = current_theta
+       theta_0 = current_theta_0
+    else:
+       theta = current_theta + label * feature_vector
+       theta_0 = current_theta_0 + label
+    return (theta, theta_0)
     raise NotImplementedError
 
 
@@ -110,11 +123,13 @@ def perceptron(feature_matrix, labels, T):
     theta_0, the offset classification parameter, after T iterations through
     the feature matrix.
     """
-    # Your code here
+    # code here
+    theta = np.zeros(feature_matrix.shape[1])
+    theta_0 = 0
     for t in range(T):
         for i in get_order(feature_matrix.shape[0]):
-            # Your code here
-            pass
+            theta, theta_0 = perceptron_single_step_update(feature_matrix[i,:], labels[i], theta, theta_0)
+    return (theta, theta_0)
     raise NotImplementedError
 
 
@@ -147,7 +162,23 @@ def average_perceptron(feature_matrix, labels, T):
     Hint: It is difficult to keep a running average; however, it is simple to
     find a sum and divide.
     """
-    # Your code here
+    # code here
+    num_data_points = feature_matrix.shape[0]
+    theta = np.zeros(feature_matrix.shape[1])
+    theta_0 = 0
+
+    theta_cache = np.zeros(feature_matrix.shape[1])
+    theta_0_cache = 0
+    for _ in range(T):
+        for i in get_order(num_data_points):
+            # code here
+            if labels[i] * (np.dot(theta, feature_matrix[i, :]) + theta_0) <= 0:
+                theta, theta_0 = perceptron_single_step_update(feature_matrix[i, :], labels[i], theta, theta_0)
+            theta_cache += theta
+            theta_0_cache += theta_0
+    theta_final = theta_cache / (num_data_points * T)
+    theta_0_final = theta_0_cache / (num_data_points * T)
+    return (theta_final, theta_0_final)
     raise NotImplementedError
 
 
@@ -177,7 +208,14 @@ def pegasos_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    # Your code here
+    # code here
+    if label * (np.dot(feature_vector, current_theta) + current_theta_0) <= 1:
+       theta = np.dot((1 - eta * L), current_theta) + eta*label*feature_vector
+       theta_0 = current_theta_0 + eta * label
+    else:
+       theta = np.dot((1 - eta * L), current_theta)
+       theta_0 = current_theta_0
+    return (theta, theta_0)
     raise NotImplementedError
 
 
@@ -210,7 +248,15 @@ def pegasos(feature_matrix, labels, T, L):
     number with the value of the theta_0, the offset classification
     parameter, found after T iterations through the feature matrix.
     """
-    # Your code here
+    # code here
+    theta = np.zeros(feature_matrix.shape[1])
+    theta_0 = 0
+    count = 0
+    for t in range(T):
+        for i in get_order(feature_matrix.shape[0]):
+            count += 1
+            theta, theta_0 = pegasos_single_step_update(feature_matrix[i,:], labels[i], L, 1.0/np.sqrt(count), theta, theta_0)
+    return (theta, theta_0)
     raise NotImplementedError
 
 # Part II
@@ -233,7 +279,14 @@ def classify(feature_matrix, theta, theta_0):
     given theta and theta_0. If a prediction is GREATER THAN zero, it should
     be considered a positive classification.
     """
-    # Your code here
+    # code here
+    predictions = np.zeros(feature_matrix.shape[0])
+    for i in range(feature_matrix.shape[0]):
+        if np.dot(feature_matrix[i, :], theta) + theta_0 > 0:
+           predictions[i] = 1
+        else:
+           predictions[i] = -1
+    return predictions
     raise NotImplementedError
 
 
@@ -269,7 +322,13 @@ def classifier_accuracy(
     trained classifier on the training data and the second element is the
     accuracy of the trained classifier on the validation data.
     """
-    # Your code here
+    # code here
+    theta, theta_0 = classifier(train_feature_matrix, train_labels, **kwargs)
+    train_pred = classify(train_feature_matrix, theta, theta_0)
+    acc_train = accuracy(train_pred, train_labels)
+    test_pred = classify(val_feature_matrix, theta, theta_0)
+    acc_test = accuracy(test_pred, val_labels)
+    return (acc_train, acc_test)
     raise NotImplementedError
 
 
@@ -293,7 +352,7 @@ def bag_of_words(texts):
 
     Feel free to change this code as guided by Problem 9
     """
-    # Your code here
+    # code here
     dictionary = {} # maps word to unique index
     for text in texts:
         word_list = extract_words(text)
